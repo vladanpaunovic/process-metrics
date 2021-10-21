@@ -3,8 +3,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:gcloud": "gcloud builds submit --tag gcr.io/four-key-metrics-329508/nextjs-test --project four-key-metrics-329508",
-    "deploy:gcloud": "gcloud run deploy --image gcr.io/four-key-metrics-329508/nextjs-test --project four-key-metrics-329508 --region 'europe-west3' --platform managed --allow-unauthenticated",
+    "build:gcloud": "gcloud builds submit --tag gcr.io/four-key-metrics-329508/web-metrics --project four-key-metrics-329508",
+    "deploy:gcloud": "gcloud run deploy --image gcr.io/four-key-metrics-329508/web-metrics --project four-key-metrics-329508 --region 'europe-west3' --platform managed --allow-unauthenticated",
     "start": "next start -p ${PORT:=3000}"
   },
   "dependencies": {
