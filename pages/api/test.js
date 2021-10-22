@@ -11,5 +11,5 @@ export default async function hello(req, res) {
 
   const allCommits = nestedCommits.flat(1);
 
-  res.status(200).json({ fromReleases, allll, allCommits });
+  res.status(200).json({ fromReleases, allCommits });
 }
