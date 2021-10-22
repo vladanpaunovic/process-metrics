@@ -1,6 +1,7 @@
 import insertRows from "../../../src/insertRow";
 import { Octokit } from "octokit";
 import getCommitsBetweenReleases from "../../../src/getCommitsBetweenReleases";
+import resolveCommit from "../../../src/resolveCommit";
 
 const EVENT_TYPE = {
   PING: "ping",
@@ -83,7 +84,15 @@ async function constructEvent(eventType, signature, payload) {
     case EVENT_TYPE.RELEASE: {
       time_created = payload.release.published_at || payload.release.created_at;
       e_id = payload.release.id;
-      const releaseCommits = await getCommitsBetweenReleases();
+
+      const fromReleases = await getCommitsBetweenReleases();
+
+      const nestedCommits = await Promise.all(
+        fromReleases.map((commit) => resolveCommit(commit.sha))
+      );
+
+      const releaseCommits = nestedCommits.flat(1);
+
       metadata = JSON.stringify({ ...payload, releaseCommits });
       break;
     }
