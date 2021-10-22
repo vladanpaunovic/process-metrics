@@ -11,5 +11,5 @@ export default async function hello(req, res) {
 
   console.log(allll);
 
-  res.status(200).json({ pr, fromReleases, allll });
+  res.status(200).json({ fromReleases, allll });
 }
