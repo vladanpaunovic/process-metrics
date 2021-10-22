@@ -1,4 +1,6 @@
 import insertRows from "../../../src/insertRow";
+import { Octokit } from "octokit";
+import getCommitsBetweenReleases from "../../../src/getCommitsBetweenReleases";
 
 const EVENT_TYPE = {
   PING: "ping",
@@ -15,15 +17,19 @@ const EVENT_TYPE = {
   RELEASE: "release",
 };
 
-function constructEvent(eventType, signature, payload) {
+async function constructEvent(eventType, signature, payload) {
   const source = "github";
   let time_created;
   let e_id;
+  let metadata = JSON.stringify(payload);
 
   switch (eventType) {
     case EVENT_TYPE.PUSH: {
-      time_created = payload.head_commit.timestamp;
-      e_id = payload.head_commit.id;
+      if (payload.head_commit) {
+        time_created = payload.head_commit.timestamp;
+        e_id = payload.head_commit.id;
+      }
+
       break;
     }
     case EVENT_TYPE.PULL_REQUEST: {
@@ -77,18 +83,21 @@ function constructEvent(eventType, signature, payload) {
     case EVENT_TYPE.RELEASE: {
       time_created = payload.release.published_at || payload.release.created_at;
       e_id = payload.release.id;
+      const releaseCommits = await getCommitsBetweenReleases();
+      metadata = JSON.stringify({ ...payload, releaseCommits });
       break;
     }
 
     default: {
-      throw new Error("Not recognised event type");
+      console.info(`Not recognised event type: ${eventType}`);
+      return null;
     }
   }
 
   const github_event = {
     event_type: eventType,
     id: e_id,
-    metadata: JSON.stringify(payload),
+    metadata,
     time_created,
     signature,
     source,
@@ -104,17 +113,19 @@ export default async function github(req, res) {
 
   const payload = JSON.parse(req.body.payload);
 
-  const githubEvent = constructEvent(
+  const githubEvent = await constructEvent(
     req.headers["x-github-event"],
     req.headers["x-hub-signature"],
     payload
   );
 
-  const insertedRows = await insertRows({
-    datasetId: "four_keys",
-    tableId: "events_raw",
-    rows: githubEvent,
-  });
+  if (githubEvent) {
+    await insertRows({
+      datasetId: "four_keys",
+      tableId: "events_raw",
+      rows: githubEvent,
+    });
+  }
 
   res.status(200).json(githubEvent);
 }
