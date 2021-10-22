@@ -9,7 +9,5 @@ export default async function hello(req, res) {
     fromReleases.map((commit) => resolveCommit(commit.sha))
   );
 
-  console.log(allll);
-
-  res.status(200).json({ pr, fromReleases, allll });
+  res.status(200).json({ fromReleases, allll });
 }
